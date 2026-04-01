@@ -1,4 +1,4 @@
-import { UrlRule, EngineOptions, UrlInjectionEngine, CompiledRules } from './types';
+import { UrlRule, EngineOptions, UrlInjectionEngine, CompiledRules, CompileOptions, RunOptions } from './types';
 import { parsePath } from './parse';
 import { compileTemplate, renderCompiled, CompiledTemplatePart } from './template';
 import { validate } from './validate';
@@ -24,9 +24,10 @@ interface RuleInstruction {
 function compileRules(
   rules: UrlRule[],
   globals: Record<string, string>,
-  transforms: Record<string, (v: string) => string>
+  transforms: Record<string, (v: string) => string>,
+  runtimeGlobals?: Set<string>,
 ): RuleInstruction[] {
-  validate(rules, { globals, transforms });
+  validate(rules, { globals, transforms }, runtimeGlobals);
 
   return rules.map(rule => {
     // Parse every param path once
@@ -160,17 +161,26 @@ export function createEngine(options?: EngineOptions): UrlInjectionEngine {
   const transforms = options?.transforms ?? {};
 
   return {
-    compile(rules: UrlRule[]): CompiledRules {
-      const instructions = compileRules(rules, globals, transforms);
+    compile(rules: UrlRule[], compileOptions?: CompileOptions): CompiledRules {
+      const rtGlobals = compileOptions?.runtimeGlobals
+        ? new Set(compileOptions.runtimeGlobals)
+        : undefined;
+      const instructions = compileRules(rules, globals, transforms, rtGlobals);
       return {
-        apply(data: object): object {
-          return runInstructions(instructions, globals, data);
+        apply(data: object, runOptions?: RunOptions): object {
+          const mergedGlobals = runOptions?.globals
+            ? { ...globals, ...runOptions.globals }
+            : globals;
+          return runInstructions(instructions, mergedGlobals, data);
         }
       };
     },
 
-    apply(rules: UrlRule[], data: object): object {
-      return this.compile(rules).apply(data);
+    apply(rules: UrlRule[], data: object, runOptions?: RunOptions): object {
+      const compileOpts = runOptions?.globals
+        ? { runtimeGlobals: Object.keys(runOptions.globals) }
+        : undefined;
+      return this.compile(rules, compileOpts).apply(data, runOptions);
     }
   };
 }

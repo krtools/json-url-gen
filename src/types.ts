@@ -5,6 +5,14 @@ export interface EngineOptions {
   transforms?: Record<string, TransformFn>;
 }
 
+export interface CompileOptions {
+  runtimeGlobals?: string[];
+}
+
+export interface RunOptions {
+  globals?: Record<string, string>;
+}
+
 export interface UrlRule {
   params: Record<string, string>;
   template: string;
@@ -12,12 +20,12 @@ export interface UrlRule {
 }
 
 export interface CompiledRules {
-  apply(data: object): object;
+  apply(data: object, runOptions?: RunOptions): object;
 }
 
 export interface UrlInjectionEngine {
-  compile(rules: UrlRule[]): CompiledRules;
-  apply(rules: UrlRule[], data: object): object;
+  compile(rules: UrlRule[], compileOptions?: CompileOptions): CompiledRules;
+  apply(rules: UrlRule[], data: object, runOptions?: RunOptions): object;
 }
 
 export interface ParsedPath {

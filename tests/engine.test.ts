@@ -240,3 +240,84 @@ describe('engine.compile + apply', () => {
     expect(data.items[0].urlB).toBe('https://b.com/1');
   });
 });
+
+describe('runtime globals', () => {
+  it('run-time globals are available in the template', () => {
+    const compiled = engine.compile(
+      [{ params: { id: 'items[*].id' }, template: 'https://{HOST|raw}/items/{id}', inject: 'url' }],
+      { runtimeGlobals: ['HOST'] },
+    );
+
+    const data: any = { items: [{ id: '1' }] };
+    compiled.apply(data, { globals: { HOST: 'api.example.com' } });
+    expect(data.items[0].url).toBe('https://api.example.com/items/1');
+  });
+
+  it('run-time globals override compile-time globals', () => {
+    const eng = createEngine({ globals: { ENV: 'staging' } });
+    const compiled = eng.compile(
+      [{ params: { id: 'items[*].id' }, template: 'https://{ENV|raw}.example.com/{id}', inject: 'url' }],
+    );
+
+    const data: any = { items: [{ id: '1' }] };
+    compiled.apply(data, { globals: { ENV: 'production' } });
+    expect(data.items[0].url).toBe('https://production.example.com/1');
+  });
+
+  it('params still take precedence over run-time globals', () => {
+    const compiled = engine.compile(
+      [{ params: { id: 'items[*].id' }, template: 'https://example.com/{id}', inject: 'url' }],
+    );
+
+    const data: any = { items: [{ id: 'from-data' }] };
+    compiled.apply(data, { globals: { id: 'from-runtime' } });
+    expect(data.items[0].url).toBe('https://example.com/from-data');
+  });
+
+  it('missing run-time global skips injection (no crash)', () => {
+    const compiled = engine.compile(
+      [{ params: { id: 'items[*].id' }, template: 'https://{HOST|raw}/{id}', inject: 'url' }],
+      { runtimeGlobals: ['HOST'] },
+    );
+
+    const data: any = { items: [{ id: '1' }] };
+    compiled.apply(data); // no run-time globals provided
+    expect(data.items[0].url).toBeUndefined();
+  });
+
+  it('different run-time globals per apply call', () => {
+    const compiled = engine.compile(
+      [{ params: { id: 'items[*].id' }, template: 'https://{ENV|raw}.example.com/{id}', inject: 'url' }],
+      { runtimeGlobals: ['ENV'] },
+    );
+
+    const d1: any = { items: [{ id: '1' }] };
+    compiled.apply(d1, { globals: { ENV: 'staging' } });
+    expect(d1.items[0].url).toBe('https://staging.example.com/1');
+
+    const d2: any = { items: [{ id: '1' }] };
+    compiled.apply(d2, { globals: { ENV: 'production' } });
+    expect(d2.items[0].url).toBe('https://production.example.com/1');
+  });
+
+  it('undeclared runtime global still fails V2 at compile time', () => {
+    expect(() =>
+      engine.compile([{
+        params: { id: 'items[*].id' },
+        template: 'https://{UNDECLARED|raw}/{id}',
+        inject: 'url',
+      }])
+    ).toThrow(/UNDECLARED/);
+  });
+
+  it('convenience apply also accepts run-time globals', () => {
+    const eng = createEngine({ globals: { BASE: 'https://example.com' } });
+    const data: any = { items: [{ id: '1' }] };
+    eng.apply(
+      [{ params: { id: 'items[*].id' }, template: '{BASE|raw}/{TENANT|raw}/{id}', inject: 'url' }],
+      data,
+      { globals: { TENANT: 'acme' } },
+    );
+    expect(data.items[0].url).toBe('https://example.com/acme/1');
+  });
+});

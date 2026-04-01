@@ -2,7 +2,7 @@ import { UrlRule, EngineOptions } from './types';
 import { parsePath, getScopePrefixes } from './parse';
 import { parseTemplateVars } from './template';
 
-export function validate(rules: UrlRule[], options?: EngineOptions): void {
+export function validate(rules: UrlRule[], options?: EngineOptions, runtimeGlobals?: Set<string>): void {
   const globals = options?.globals ?? {};
   const transforms = options?.transforms ?? {};
 
@@ -39,7 +39,12 @@ export function validate(rules: UrlRule[], options?: EngineOptions): void {
     // V2 — Undefined template variable
     const templateVars = parseTemplateVars(rule.template);
     for (const tv of templateVars) {
-      if (!(tv.name in rule.params) && !(tv.name in globals) && !(tv.name in transforms)) {
+      if (
+        !(tv.name in rule.params) &&
+        !(tv.name in globals) &&
+        !(tv.name in transforms) &&
+        !(runtimeGlobals && runtimeGlobals.has(tv.name))
+      ) {
         throw new Error(
           `Rule ${ruleIdx}: undefined template variable "${tv.name}"`
         );

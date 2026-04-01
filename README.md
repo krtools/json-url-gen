@@ -124,6 +124,30 @@ tenants[*].regions[*].services[*].id
 
 All param paths in a rule must form a strict parent-child lineage — no "cousin" paths (paths that diverge at the same array depth).
 
+### Escaping Special Characters
+
+Property names containing dots, brackets, or backslashes can be referenced using **backslash escaping** or **quoted segments**.
+
+**Backslash escaping** — escape `.`, `[`, or `\` in plain segments:
+
+```
+foo\.bar              → key "foo.bar"
+data\[0]              → key "data[0]"
+back\\slash           → key "back\slash"
+items[*].foo\.bar     → iterate items, read key "foo.bar"
+```
+
+**Quoted segments** — wrap the key in `["..."]` for keys with any special characters:
+
+```
+["ANNOYING[*]_PATH"]                → key "ANNOYING[*]_PATH"
+["foo.bar"]                         → key "foo.bar"
+data[*].["weird.key"].name          → iterate data, read key "weird.key", then "name"
+["has\"quotes"]                     → key with literal double quote
+```
+
+Inside quoted segments, only `\"` and `\\` are valid escape sequences. In plain segments, only `\.`, `\[`, and `\\` are valid. Unknown escape sequences (e.g. `\n`) throw an error.
+
 ## Template Syntax
 
 Variables are written as `{varName}` or `{varName|modifier}`:

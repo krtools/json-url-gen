@@ -93,4 +93,32 @@ describe('validate', () => {
       )
     ).toThrow();
   });
+
+  it('V2 — declared runtime global passes validation', () => {
+    expect(() =>
+      validate(
+        [{
+          params: { id: 'items[*].id' },
+          template: '{id}/{HOST|raw}',
+          inject: 'url',
+        }],
+        {},
+        new Set(['HOST'])
+      )
+    ).not.toThrow();
+  });
+
+  it('V2 — undeclared variable still throws even with runtimeGlobals', () => {
+    expect(() =>
+      validate(
+        [{
+          params: { id: 'items[*].id' },
+          template: '{id}/{HOST|raw}/{UNKNOWN}',
+          inject: 'url',
+        }],
+        {},
+        new Set(['HOST'])
+      )
+    ).toThrow(/UNKNOWN/i);
+  });
 });

@@ -8,7 +8,8 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "demo": "vite --config vite.config.demo.ts"
+    "demo": "vite --config vite.config.demo.ts",
+    "build:demo": "vite build --config vite.config.demo.ts"
   },
   "keywords": ["json", "url", "template", "injection", "traversal", "nested"],
   "author": "",

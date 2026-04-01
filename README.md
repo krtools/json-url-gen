@@ -66,7 +66,7 @@ interface EngineOptions {
 - **`globals`** — key-value pairs available as template variables in every rule. Param names take precedence over globals on collision (a warning is logged).
 - **`transforms`** — named functions that can be referenced as template modifiers.
 
-### `engine.compile(rules): CompiledRules`
+### `engine.compile(rules, compileOptions?): CompiledRules`
 
 Pre-compiles an array of rules into an optimized instruction set. All path parsing, validation, and transform resolution happens once at compile time. The returned object's `apply` method is a lean runner — no regex, no map lookups, no re-validation.
 
@@ -77,14 +77,40 @@ interface UrlRule {
   inject: string;                  // property name written on the target node
 }
 
+interface CompileOptions {
+  runtimeGlobals?: string[];       // global names that will be provided at apply time
+}
+
 const compiled = engine.compile(rules);
 compiled.apply(data1);
 compiled.apply(data2); // reuse across many data objects
 ```
 
-### `engine.apply(rules, data): object`
+If your templates reference globals that aren't known at compile time, declare them via `runtimeGlobals` so V2 validation doesn't reject them:
 
-Convenience method — compiles and runs in one call. Use `compile()` instead when applying the same rules to multiple data objects.
+```ts
+const compiled = engine.compile(rules, {
+  runtimeGlobals: ['REQUEST_ID', 'ENV'],
+});
+```
+
+### `compiled.apply(data, runOptions?): object`
+
+Runs compiled rules against a data object. Optionally accepts per-run globals.
+
+```ts
+interface RunOptions {
+  globals?: Record<string, string>;
+}
+```
+
+Precedence (highest wins): **params** > **run-time globals** > **compile-time globals**.
+
+If a declared runtime global is not provided at apply time, any template referencing it will skip injection for that node (no partial URLs, no crash).
+
+### `engine.apply(rules, data, runOptions?): object`
+
+Convenience method — compiles and runs in one call. Use `compile()` instead when applying the same rules to multiple data objects. Run-time globals passed here are automatically declared during compilation.
 
 Returns the same (mutated) object. Rules run sequentially — each rule sees mutations from previous rules.
 
@@ -228,6 +254,33 @@ engine.apply(
 // items[0].slug → "https://example.com/hello-world"
 ```
 
+### Runtime Globals
+
+Compile rules once, provide different globals per `apply` call:
+
+```ts
+const engine = createEngine({ globals: { BASE: 'https://api.example.com' } });
+
+const compiled = engine.compile(
+  [{
+    params: { id: 'items[*].id' },
+    template: '{BASE|raw}/{ENV|raw}/items/{id}',
+    inject: 'url',
+  }],
+  { runtimeGlobals: ['ENV'] }
+);
+
+// Staging
+const staging: any = { items: [{ id: '1' }] };
+compiled.apply(staging, { globals: { ENV: 'staging' } });
+// items[0].url → "https://api.example.com/staging/items/1"
+
+// Production
+const prod: any = { items: [{ id: '1' }] };
+compiled.apply(prod, { globals: { ENV: 'production' } });
+// items[0].url → "https://api.example.com/production/items/1"
+```
+
 ### Multiple Rules
 
 Rules are applied sequentially. Each rule can inject a different property:
@@ -260,6 +313,8 @@ engine.apply(
 | `inject` property already exists | Overwritten |
 | Cousin param paths | Caught by `validate`, throws |
 | Global name collides with param name | Param wins, `console.warn` logged |
+| Run-time global overrides compile-time global | Run-time wins |
+| Declared runtime global missing at apply time | Skip injection for that node |
 | Rules applied | Sequentially, each sees previous mutations |
 
 ## License

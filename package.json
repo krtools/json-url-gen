@@ -1,0 +1,23 @@
+{
+  "name": "json-url-gen",
+  "version": "1.0.0",
+  "description": "Declarative URL injection engine for nested JSON objects",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "demo": "vite --config vite.config.demo.ts"
+  },
+  "keywords": ["json", "url", "template", "injection", "traversal", "nested"],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "files": ["dist", "LICENSE"],
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  }
+}

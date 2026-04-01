@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>json-url-gen — Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    header p {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      color: #a0aec0;
+    }
+    .install-badge {
+      display: inline-block;
+      margin-top: 1rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      padding: 0.4rem 1.2rem;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.95rem;
+      color: #7bed9f;
+    }
+
+    main { max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #edf0f4;
+    }
+    .card-header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .card-header p {
+      font-size: 0.88rem;
+      color: #64748b;
+      margin-top: 0.2rem;
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 960px) {
+      .panels { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+    }
+    .panel + .panel { border-left: 1px solid #edf0f4; }
+    @media (max-width: 960px) {
+      .panel + .panel { border-left: none; border-top: 1px solid #edf0f4; }
+    }
+    .panel-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+      margin-bottom: 0.5rem;
+    }
+
+    pre {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .json-key { color: #5b6abf; }
+    .json-string { color: #2a9d5c; }
+    .json-number { color: #d97706; }
+    .json-bool, .json-null { color: #9333ea; }
+    .json-punct { color: #94a3b8; }
+
+    .injected {
+      background: #ecfdf5;
+      border-left: 3px solid #34d399;
+      margin-left: -0.75rem;
+      padding-left: calc(0.75rem - 3px);
+      display: inline-block;
+      width: calc(100% + 0.75rem);
+      border-radius: 2px;
+    }
+
+    .rule-key { color: #5b6abf; }
+    .rule-string { color: #2a9d5c; }
+    .rule-comment { color: #94a3b8; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>json-url-gen</h1>
+  <p>Declarative URL injection for deeply-nested JSON objects</p>
+  <div class="install-badge">npm install json-url-gen</div>
+</header>
+
+<main id="demos"></main>
+
+<script type="module">
+  import { createEngine } from '../src/index.ts';
+
+  // ── JSON → highlighted HTML ──────────────────────────────────────
+
+  function jsonToHtml(value, indent, highlightKeys) {
+    const I = '  ';
+    return _render(value, 0);
+
+    function _render(val, depth) {
+      if (val === null) return span('null', 'null');
+      if (typeof val === 'boolean') return span(String(val), 'bool');
+      if (typeof val === 'number') return span(String(val), 'number');
+      if (typeof val === 'string') return span(quote(val), 'string');
+
+      if (Array.isArray(val)) {
+        if (val.length === 0) return punct('[]');
+        const items = val.map(v => I.repeat(depth + 1) + _render(v, depth + 1));
+        return punct('[') + '\n' + items.join(punct(',') + '\n') + '\n' + I.repeat(depth) + punct(']');
+      }
+
+      // Object
+      const keys = Object.keys(val);
+      if (keys.length === 0) return punct('{}');
+      const lines = keys.map((k, i) => {
+        const comma = i < keys.length - 1 ? punct(',') : '';
+        const line = I.repeat(depth + 1) + span(quote(k), 'key') + punct(': ') + _render(val[k], depth + 1) + comma;
+        if (highlightKeys && highlightKeys.has(k) && typeof val[k] === 'string') {
+          return `<span class="injected">${line}</span>`;
+        }
+        return line;
+      });
+      return punct('{') + '\n' + lines.join('\n') + '\n' + I.repeat(depth) + punct('}');
+    }
+
+    function span(text, cls) { return `<span class="json-${cls}">${esc(text)}</span>`; }
+    function punct(text) { return `<span class="json-punct">${esc(text)}</span>`; }
+    function quote(s) { return `"${s}"`; }
+    function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  }
+
+  // ── Rule display formatter ───────────────────────────────────────
+
+  function ruleToHtml(scenario) {
+    const lines = [];
+
+    if (scenario.optionsDisplay) {
+      lines.push(`<span class="rule-comment">// Engine options</span>`);
+      lines.push(scenario.optionsDisplay);
+      lines.push('');
+    }
+
+    const rules = scenario.rules;
+    const multi = rules.length > 1;
+    if (multi) lines.push(`<span class="rule-comment">// ${rules.length} rules applied sequentially</span>`);
+
+    rules.forEach((rule, ri) => {
+      if (multi) lines.push(`<span class="rule-comment">// Rule ${ri + 1}</span>`);
+      lines.push(punct('{'));
+
+      // params
+      lines.push(`  <span class="rule-key">params</span>${punct(': {')} `);
+      const paramEntries = Object.entries(rule.params);
+      paramEntries.forEach(([k, v], i) => {
+        const comma = i < paramEntries.length - 1 ? punct(',') : '';
+        lines.push(`    <span class="rule-key">${esc(k)}</span>${punct(':')} <span class="rule-string">"${esc(v)}"</span>${comma}`);
+      });
+      lines.push(`  ${punct('},')} `);
+
+      // template
+      lines.push(`  <span class="rule-key">template</span>${punct(':')} <span class="rule-string">"${esc(rule.template)}"</span>${punct(',')}`);
+
+      // inject
+      lines.push(`  <span class="rule-key">inject</span>${punct(':')} <span class="rule-string">"${esc(rule.inject)}"</span>`);
+
+      lines.push(punct('}'));
+      if (multi && ri < rules.length - 1) lines.push('');
+    });
+
+    return lines.join('\n');
+  }
+
+  function punct(s) { return `<span class="rule-string" style="color:#94a3b8">${esc(s)}</span>`; }
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  // ── Demo scenarios ───────────────────────────────────────────────
+
+  const scenarios = [
+    {
+      title: 'Simple URL Injection',
+      description: 'Each product gets a URL based on its ID.',
+      options: {},
+      rules: [{
+        params: { productId: 'products[*].id' },
+        template: 'https://store.example.com/products/{productId}',
+        inject: 'url',
+      }],
+      data: {
+        products: [
+          { id: 'p-101', name: 'Widget' },
+          { id: 'p-202', name: 'Gadget' },
+          { id: 'p-303', name: 'Gizmo' },
+        ],
+      },
+    },
+    {
+      title: 'URL Encoding',
+      description: 'Special characters are encoded with encodeURIComponent by default.',
+      options: {},
+      rules: [{
+        params: { title: 'articles[*].title' },
+        template: 'https://blog.example.com/search?q={title}',
+        inject: 'searchUrl',
+      }],
+      data: {
+        articles: [
+          { title: 'Hello World!' },
+          { title: 'Q&A: Best Practices' },
+          { title: 'Prices in USD ($)' },
+        ],
+      },
+    },
+    {
+      title: 'Raw Modifier',
+      description: 'The |raw modifier skips encoding — useful for domains, paths, and URL fragments.',
+      options: {},
+      rules: [{
+        params: { domain: 'sites[*].domain', path: 'sites[*].path' },
+        template: 'https://{domain|raw}/{path|raw}',
+        inject: 'fullUrl',
+      }],
+      data: {
+        sites: [
+          { domain: 'docs.acme.com', path: 'guides/getting-started' },
+          { domain: 'api.acme.com', path: 'v2/users/search' },
+        ],
+      },
+    },
+    {
+      title: 'Custom Transform',
+      description: 'A slugify transform converts titles into URL-safe slugs.',
+      options: {
+        transforms: {
+          slugify: (v) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        },
+      },
+      optionsDisplay: `<span class="rule-key">transforms</span>${punct(': {')} \n  <span class="rule-key">slugify</span>${punct(':')} <span class="rule-comment">(v) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-")</span>\n${punct('}')}`,
+      rules: [{
+        params: { title: 'posts[*].title' },
+        template: 'https://blog.example.com/posts/{title|slugify}',
+        inject: 'permalink',
+      }],
+      data: {
+        posts: [
+          { title: 'Getting Started with TypeScript' },
+          { title: 'Advanced Patterns & Tips!' },
+          { title: '10 Things You Should Know' },
+        ],
+      },
+    },
+    {
+      title: 'Globals',
+      description: 'Engine-level globals are available in all templates without being in params.',
+      options: {
+        globals: { APP_DOMAIN: 'api.acme.com', API_VERSION: 'v2' },
+      },
+      optionsDisplay: `<span class="rule-key">globals</span>${punct(': {')} \n  <span class="rule-key">APP_DOMAIN</span>${punct(':')} <span class="rule-string">"api.acme.com"</span>${punct(',')}\n  <span class="rule-key">API_VERSION</span>${punct(':')} <span class="rule-string">"v2"</span>\n${punct('}')}`,
+      rules: [{
+        params: { userId: 'users[*].id' },
+        template: 'https://{APP_DOMAIN|raw}/{API_VERSION|raw}/users/{userId}',
+        inject: 'apiUrl',
+      }],
+      data: {
+        users: [
+          { id: 'u-42', name: 'Alice' },
+          { id: 'u-99', name: 'Bob' },
+        ],
+      },
+    },
+    {
+      title: 'Multi-Level Traversal',
+      description: 'Parameters collected at 3 nesting levels — tenants, regions, and services.',
+      options: {},
+      rules: [{
+        params: {
+          tenantId: 'tenants[*].id',
+          region: 'tenants[*].regions[*].code',
+          serviceId: 'tenants[*].regions[*].services[*].id',
+        },
+        template: 'https://console.example.com/{tenantId}/{region}/{serviceId}',
+        inject: 'dashboardUrl',
+      }],
+      data: {
+        tenants: [
+          {
+            id: 'acme',
+            regions: [
+              { code: 'us-east', services: [{ id: 'auth' }, { id: 'billing' }] },
+              { code: 'eu-west', services: [{ id: 'auth' }] },
+            ],
+          },
+          {
+            id: 'globex',
+            regions: [
+              { code: 'ap-south', services: [{ id: 'cdn' }] },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      title: 'Multiple Rules',
+      description: 'Two rules applied sequentially, each injecting a different property.',
+      options: {},
+      rules: [
+        {
+          params: { id: 'items[*].id' },
+          template: 'https://store.example.com/items/{id}',
+          inject: 'storeUrl',
+        },
+        {
+          params: { sku: 'items[*].sku' },
+          template: 'https://warehouse.example.com/lookup/{sku}',
+          inject: 'warehouseUrl',
+        },
+      ],
+      data: {
+        items: [
+          { id: '42', sku: 'WDG-001', name: 'Widget' },
+          { id: '43', sku: 'GDG-002', name: 'Gadget' },
+        ],
+      },
+    },
+    {
+      title: 'Sibling Params',
+      description: 'Multiple params from the same array depth — different fields on the same object.',
+      options: {},
+      rules: [{
+        params: {
+          first: 'employees[*].firstName',
+          last: 'employees[*].lastName',
+          dept: 'employees[*].dept',
+        },
+        template: 'https://directory.example.com/{dept}/{last}/{first}',
+        inject: 'profileUrl',
+      }],
+      data: {
+        employees: [
+          { firstName: 'Jane', lastName: 'Doe', dept: 'engineering' },
+          { firstName: 'John', lastName: 'Smith', dept: 'design' },
+        ],
+      },
+    },
+  ];
+
+  // ── Render ───────────────────────────────────────────────────────
+
+  const container = document.getElementById('demos');
+
+  for (const scenario of scenarios) {
+    const engine = createEngine(scenario.options);
+    const input = structuredClone(scenario.data);
+    const output = structuredClone(scenario.data);
+    engine.apply(scenario.rules, output);
+
+    const highlightKeys = new Set(scenario.rules.map(r => r.inject));
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-header">
+        <h2>${scenario.title}</h2>
+        <p>${scenario.description}</p>
+      </div>
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-label">Input Data</div>
+          <pre>${jsonToHtml(input, 0, null)}</pre>
+        </div>
+        <div class="panel">
+          <div class="panel-label">Rule${scenario.rules.length > 1 ? 's' : ''}</div>
+          <pre>${ruleToHtml(scenario)}</pre>
+        </div>
+        <div class="panel">
+          <div class="panel-label">Output</div>
+          <pre>${jsonToHtml(output, 0, highlightKeys)}</pre>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+</script>
+</body>
+</html>

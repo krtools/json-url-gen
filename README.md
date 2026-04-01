@@ -2,6 +2,8 @@
 
 A declarative engine that traverses deeply-nested JSON objects and injects computed URLs into target nodes. Define rules with path expressions, URL templates, and an injection target — the engine handles the rest.
 
+[Live Demo](https://krtools.github.io/json-url-gen/)
+
 ## Install
 
 ```bash

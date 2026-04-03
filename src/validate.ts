@@ -53,10 +53,12 @@ export function validate(rules: UrlRule[], options?: EngineOptions, runtimeGloba
 
     // V3 — Undefined transform modifier
     for (const tv of templateVars) {
-      if (tv.modifier && tv.modifier !== 'raw' && !(tv.modifier in transforms)) {
-        throw new Error(
-          `Rule ${ruleIdx}: undefined transform modifier "${tv.modifier}"`
-        );
+      for (const mod of tv.modifiers) {
+        if (mod !== 'raw' && mod !== 'encode' && !(mod in transforms)) {
+          throw new Error(
+            `Rule ${ruleIdx}: undefined transform modifier "${mod}"`
+          );
+        }
       }
     }
   });

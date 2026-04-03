@@ -121,4 +121,49 @@ describe('validate', () => {
       )
     ).toThrow(/UNKNOWN/i);
   });
+
+  it('V3 — validates all modifiers in a chain', () => {
+    const transforms = { trim: (v: string) => v.trim() };
+    expect(() =>
+      validate(
+        [{
+          params: { name: 'items[*].name' },
+          template: '{name|trim|nope}',
+          inject: 'url',
+        }],
+        { transforms }
+      )
+    ).toThrow(/nope/i);
+  });
+
+  it('V3 — encode is valid in a chain', () => {
+    const transforms = { upper: (v: string) => v.toUpperCase() };
+    expect(() =>
+      validate(
+        [{
+          params: { name: 'items[*].name' },
+          template: '{name|upper|encode}',
+          inject: 'url',
+        }],
+        { transforms }
+      )
+    ).not.toThrow();
+  });
+
+  it('V3 — chained transforms with raw all valid', () => {
+    const transforms = {
+      trim: (v: string) => v.trim(),
+      upper: (v: string) => v.toUpperCase(),
+    };
+    expect(() =>
+      validate(
+        [{
+          params: { name: 'items[*].name' },
+          template: '{name|trim|upper|raw}',
+          inject: 'url',
+        }],
+        { transforms }
+      )
+    ).not.toThrow();
+  });
 });

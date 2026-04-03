@@ -4,7 +4,7 @@ const TEMPLATE_VAR_RE = /\{([^}]+)\}/g;
 
 export interface TemplateVar {
   name: string;
-  modifier?: string;
+  modifiers: string[];
 }
 
 /** A compiled template part: either a literal string or a pre-bound variable lookup. */
@@ -19,13 +19,8 @@ export function parseTemplateVars(template: string): TemplateVar[] {
   let match;
   const re = new RegExp(TEMPLATE_VAR_RE.source, 'g');
   while ((match = re.exec(template)) !== null) {
-    const inner = match[1];
-    const pipeIdx = inner.indexOf('|');
-    if (pipeIdx === -1) {
-      vars.push({ name: inner });
-    } else {
-      vars.push({ name: inner.substring(0, pipeIdx), modifier: inner.substring(pipeIdx + 1) });
-    }
+    const segments = match[1].split('|').map(s => s.trim());
+    vars.push({ name: segments[0], modifiers: segments.slice(1) });
   }
   return vars;
 }
@@ -48,20 +43,36 @@ export function compileTemplate(
       parts.push(template.substring(lastIndex, match.index));
     }
 
-    const inner = match[1];
-    const pipeIdx = inner.indexOf('|');
-    const name = pipeIdx === -1 ? inner : inner.substring(0, pipeIdx);
-    const modifier = pipeIdx === -1 ? undefined : inner.substring(pipeIdx + 1);
+    const segments = match[1].split('|').map(s => s.trim());
+    const name = segments[0];
+    const modifiers = segments.slice(1);
+
+    // Separate transforms from encoding directives (raw/encode).
+    // Transforms are chained in order; for encoding, last directive wins.
+    const fns: TransformFn[] = [];
+    let encode = true; // default: encodeURIComponent
+    for (const mod of modifiers) {
+      if (mod === 'raw') {
+        encode = false;
+      } else if (mod === 'encode') {
+        encode = true;
+      } else {
+        const fn = transforms[mod];
+        if (!fn) throw new Error(`Unknown transform modifier: "${mod}"`);
+        fns.push(fn);
+      }
+    }
 
     let apply: (v: string) => string;
-    if (modifier === undefined) {
-      apply = encodeURIComponent;
-    } else if (modifier === 'raw') {
-      apply = identity;
+    if (fns.length === 0) {
+      apply = encode ? encodeURIComponent : identity;
+    } else if (fns.length === 1) {
+      const fn = fns[0];
+      apply = encode ? (v) => encodeURIComponent(fn(v)) : fn;
     } else {
-      const fn = transforms[modifier];
-      if (!fn) throw new Error(`Unknown transform modifier: "${modifier}"`);
-      apply = fn;
+      apply = encode
+        ? (v) => encodeURIComponent(fns.reduce((acc, fn) => fn(acc), v))
+        : (v) => fns.reduce((acc, fn) => fn(acc), v);
     }
 
     parts.push({ name, apply });

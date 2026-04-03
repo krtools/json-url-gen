@@ -122,7 +122,7 @@ Standalone static analysis of rules. Throws a descriptive error on:
 |------|-----------|
 | V1 | Cousin-node conflict — param paths diverge at the same wildcard depth |
 | V2 | Undefined template variable — not in `params`, `globals`, or `transforms` |
-| V3 | Undefined transform modifier — not `raw` and not in `transforms` |
+| V3 | Undefined transform modifier — not `raw`, `encode`, or in `transforms` |
 | V4 | Empty `params` — no target node to inject into |
 
 Also called automatically by `compile()` and `apply()`.
@@ -176,16 +176,22 @@ Inside quoted segments, only `\"` and `\\` are valid escape sequences. In plain 
 
 ## Template Syntax
 
-Variables are written as `{varName}` or `{varName|modifier}`:
+Variables are written as `{varName}`, `{varName|modifier}`, or chained with multiple pipes `{varName|a|b|c}`:
 
 | Modifier | Behavior |
 |----------|----------|
 | *(none)* | `encodeURIComponent` applied |
 | `raw` | No encoding |
+| `encode` | Explicit `encodeURIComponent` (default, useful to override a previous `raw`) |
 | *custom* | Calls the named function from `transforms` |
 
+Modifiers are chained left to right. `raw` and `encode` are encoding directives — if multiple appear, **last one wins**. All other modifiers are transform functions applied in order. Whitespace around pipes is ignored.
+
 ```
-https://{APP_DOMAIN|raw}/{tenantId}/services/{name|slugify}
+{name|trim|upper|raw}     → trim, then uppercase, no encoding
+{q|slugify}               → slugify, then encodeURIComponent (default)
+{q|raw|slugify|encode}    → slugify, then encodeURIComponent (last directive wins)
+{ name | upper }          → whitespace is fine
 ```
 
 ## Examples
@@ -239,7 +245,7 @@ engine.apply(
 const engine = createEngine({
   transforms: {
     slugify: (v) => v.toLowerCase().replace(/\s+/g, '-'),
-    upper: (v) => v.toUpperCase(),
+    trim: (v) => v.trim(),
   },
 });
 
@@ -252,6 +258,30 @@ engine.apply(
   { items: [{ name: 'Hello World' }] }
 );
 // items[0].slug → "https://example.com/hello-world"
+```
+
+### Chained Transforms
+
+Pipe multiple transforms together — they apply left to right:
+
+```ts
+const engine = createEngine({
+  transforms: {
+    trim: (v) => v.trim(),
+    upper: (v) => v.toUpperCase(),
+  },
+});
+
+engine.apply(
+  [{
+    params: { tag: 'items[*].tag' },
+    template: 'https://example.com/tags/{tag|trim|upper|raw}',
+    inject: 'url',
+  }],
+  { items: [{ tag: '  my tag  ' }] }
+);
+// items[0].url → "https://example.com/tags/MY TAG"
+//   trim → "my tag" → upper → "MY TAG" → raw (no encoding)
 ```
 
 ### Runtime Globals

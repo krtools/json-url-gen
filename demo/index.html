@@ -20,16 +20,8 @@
       padding: 3rem 2rem;
       text-align: center;
     }
-    header h1 {
-      font-size: 2.4rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    header p {
-      margin-top: 0.5rem;
-      font-size: 1.1rem;
-      color: #a0aec0;
-    }
+    header h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.02em; }
+    header p { margin-top: 0.5rem; font-size: 1.1rem; color: #a0aec0; }
     .install-badge {
       display: inline-block;
       margin-top: 1rem;
@@ -44,6 +36,128 @@
 
     main { max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Playground ─────────────────────────────────────────── */
+
+    .playground { margin-bottom: 3rem; }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .preset-btn {
+      padding: 0.3rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      background: #fff;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover { border-color: #5b6abf; color: #5b6abf; }
+    .preset-btn.active { background: #5b6abf; color: #fff; border-color: #5b6abf; }
+
+    .playground-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .playground-left { display: flex; flex-direction: column; }
+    .playground-right { display: flex; flex-direction: column; }
+
+    .editor-group { margin-bottom: 0.75rem; }
+    .editor-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 0.35rem;
+    }
+    .editor-label .optional {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      color: #94a3b8;
+      font-size: 0.7rem;
+    }
+
+    .editor {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #fafbfc;
+      overflow: auto;
+      tab-size: 2;
+      -moz-tab-size: 2;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      outline: none;
+      color: #1a1a2e;
+      min-height: 100px;
+      max-height: 320px;
+    }
+    .editor:focus {
+      border-color: #5b6abf;
+      box-shadow: 0 0 0 3px rgba(91, 106, 191, 0.1);
+    }
+    .editor-sm { min-height: 40px; max-height: 120px; }
+
+    .output-panel {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #fafbfc;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      flex: 1;
+      min-height: 200px;
+    }
+
+    .error-text { color: #dc2626; }
+
+    .transforms-hint {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+    .transforms-hint code {
+      background: #f1f5f9;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+    }
+
+    /* ── Prism tokens ──────────────────────────────────────── */
+
+    .token.property { color: #5b6abf; }
+    .token.string { color: #2a9d5c; }
+    .token.number { color: #d97706; }
+    .token.boolean { color: #9333ea; }
+    .token.null, .token.keyword { color: #9333ea; }
+    .token.punctuation { color: #94a3b8; }
+    .token.operator { color: #94a3b8; }
+
+    /* ── Static example cards ──────────────────────────────── */
+
+    .examples .section-title { margin-top: 1rem; }
+
     .card {
       background: #fff;
       border-radius: 10px;
@@ -51,36 +165,22 @@
       margin-bottom: 2rem;
       overflow: hidden;
     }
-    .card-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid #edf0f4;
-    }
-    .card-header h2 {
-      font-size: 1.15rem;
-      font-weight: 600;
-    }
-    .card-header p {
-      font-size: 0.88rem;
-      color: #64748b;
-      margin-top: 0.2rem;
-    }
+    .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #edf0f4; }
+    .card-header h2 { font-size: 1.15rem; font-weight: 600; }
+    .card-header p { font-size: 0.88rem; color: #64748b; margin-top: 0.2rem; }
 
     .panels {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 0;
-    }
-    @media (max-width: 960px) {
-      .panels { grid-template-columns: 1fr; }
+      grid-template-columns: 1fr 1fr;
     }
 
-    .panel {
-      padding: 1rem 1.25rem;
-      overflow-x: auto;
-    }
+    .panel { padding: 1rem 1.25rem; }
     .panel + .panel { border-left: 1px solid #edf0f4; }
-    @media (max-width: 960px) {
-      .panel + .panel { border-left: none; border-top: 1px solid #edf0f4; }
+
+    .panel-section + .panel-section {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #edf0f4;
     }
     .panel-label {
       font-size: 0.7rem;
@@ -96,8 +196,10 @@
       font-size: 0.82rem;
       line-height: 1.55;
       white-space: pre-wrap;
-      word-break: break-word;
+      overflow-wrap: break-word;
     }
+
+    /* ── JSON highlighter (output) ─────────────────────────── */
 
     .json-key { color: #5b6abf; }
     .json-string { color: #2a9d5c; }
@@ -115,9 +217,20 @@
       border-radius: 2px;
     }
 
+    /* ── Rule display ──────────────────────────────────────── */
+
     .rule-key { color: #5b6abf; }
     .rule-string { color: #2a9d5c; }
+    .rule-punct { color: #94a3b8; }
     .rule-comment { color: #94a3b8; font-style: italic; }
+
+    /* ── Responsive ────────────────────────────────────────── */
+
+    @media (max-width: 800px) {
+      .playground-grid { grid-template-columns: 1fr; }
+      .panels { grid-template-columns: 1fr; }
+      .panel + .panel { border-left: none; border-top: 1px solid #edf0f4; }
+    }
   </style>
 </head>
 <body>
@@ -128,59 +241,140 @@
   <div class="install-badge">npm install json-url-gen</div>
 </header>
 
-<main id="demos"></main>
+<main>
+  <section class="playground">
+    <h2 class="section-title">Try It Live</h2>
+    <div class="presets" id="presets"></div>
+    <div class="playground-grid">
+      <div class="playground-left">
+        <div class="editor-group">
+          <div class="editor-label">Data</div>
+          <div id="editor-data" class="editor"></div>
+        </div>
+        <div class="editor-group">
+          <div class="editor-label">Rules</div>
+          <div id="editor-rules" class="editor"></div>
+        </div>
+        <div class="editor-group">
+          <div class="editor-label">Globals <span class="optional">(optional)</span></div>
+          <div id="editor-globals" class="editor editor-sm"></div>
+        </div>
+        <div class="transforms-hint">
+          Built-in transforms: <code>slugify</code> <code>upper</code> <code>lower</code>
+        </div>
+      </div>
+      <div class="playground-right">
+        <div class="editor-label">Output</div>
+        <pre id="output-pre" class="output-panel"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="examples">
+    <h2 class="section-title">Examples</h2>
+    <div id="demos"></div>
+  </section>
+</main>
 
 <script type="module">
   import { createEngine } from '../src/index.ts';
+  import { CodeJar } from 'codejar';
+  import Prism from 'prismjs';
 
-  // ── JSON → highlighted HTML ──────────────────────────────────────
+  // ── Prism JSON grammar (inline to avoid import-ordering issues) ──
 
-  function jsonToHtml(value, indent, highlightKeys) {
+  Prism.languages.json = {
+    property: { pattern: /(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?=\s*:)/, lookbehind: true, greedy: true },
+    string: { pattern: /(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?!\s*:)/, lookbehind: true, greedy: true },
+    number: /-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/i,
+    punctuation: /[{}[\],]/,
+    operator: /:/,
+    boolean: /\b(?:false|true)\b/,
+    null: { pattern: /\bnull\b/, alias: 'keyword' },
+  };
+
+  // ── Helpers ─────────────────────────────────────────────────────────
+
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function punct(s) { return `<span class="rule-punct">${esc(s)}</span>`; }
+
+  function highlightJson(el) {
+    el.innerHTML = Prism.highlight(el.textContent, Prism.languages.json, 'json');
+  }
+
+  const builtInTransforms = {
+    slugify: (v) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+    upper: (v) => v.toUpperCase(),
+    lower: (v) => v.toLowerCase(),
+  };
+
+  const transformDescriptions = {
+    slugify: '(v) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-")',
+  };
+
+  // ── JSON → highlighted HTML (for output panels) ─────────────────────
+
+  function jsonToHtml(val, depth, highlightKeys) {
     const I = '  ';
-    return _render(value, 0);
+    return render(val, depth);
 
-    function _render(val, depth) {
-      if (val === null) return span('null', 'null');
-      if (typeof val === 'boolean') return span(String(val), 'bool');
-      if (typeof val === 'number') return span(String(val), 'number');
-      if (typeof val === 'string') return span(quote(val), 'string');
+    function render(v, d) {
+      if (v === null) return span('null', 'null');
+      if (typeof v === 'boolean') return span(String(v), 'bool');
+      if (typeof v === 'number') return span(String(v), 'number');
+      if (typeof v === 'string') return span(quote(v), 'string');
 
-      if (Array.isArray(val)) {
-        if (val.length === 0) return punct('[]');
-        const items = val.map(v => I.repeat(depth + 1) + _render(v, depth + 1));
-        return punct('[') + '\n' + items.join(punct(',') + '\n') + '\n' + I.repeat(depth) + punct(']');
+      if (Array.isArray(v)) {
+        if (v.length === 0) return punc('[]');
+        const items = v.map(x => I.repeat(d + 1) + render(x, d + 1));
+        return punc('[') + '\n' + items.join(punc(',') + '\n') + '\n' + I.repeat(d) + punc(']');
       }
 
-      // Object
-      const keys = Object.keys(val);
-      if (keys.length === 0) return punct('{}');
+      const keys = Object.keys(v);
+      if (keys.length === 0) return punc('{}');
       const lines = keys.map((k, i) => {
-        const comma = i < keys.length - 1 ? punct(',') : '';
-        const line = I.repeat(depth + 1) + span(quote(k), 'key') + punct(': ') + _render(val[k], depth + 1) + comma;
-        if (highlightKeys && highlightKeys.has(k) && typeof val[k] === 'string') {
+        const comma = i < keys.length - 1 ? punc(',') : '';
+        const line = I.repeat(d + 1) + span(quote(k), 'key') + punc(': ') + render(v[k], d + 1) + comma;
+        if (highlightKeys && highlightKeys.has(k) && typeof v[k] === 'string') {
           return `<span class="injected">${line}</span>`;
         }
         return line;
       });
-      return punct('{') + '\n' + lines.join('\n') + '\n' + I.repeat(depth) + punct('}');
+      return punc('{') + '\n' + lines.join('\n') + '\n' + I.repeat(d) + punc('}');
     }
 
     function span(text, cls) { return `<span class="json-${cls}">${esc(text)}</span>`; }
-    function punct(text) { return `<span class="json-punct">${esc(text)}</span>`; }
+    function punc(text) { return `<span class="json-punct">${esc(text)}</span>`; }
     function quote(s) { return `"${s}"`; }
-    function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   }
 
-  // ── Rule display formatter ───────────────────────────────────────
+  // ── Rule → highlighted HTML (for static example cards) ──────────────
 
   function ruleToHtml(scenario) {
     const lines = [];
+    const opts = scenario.options || {};
 
-    if (scenario.optionsDisplay) {
+    if (opts.globals || opts.transforms) {
       lines.push(`<span class="rule-comment">// Engine options</span>`);
-      lines.push(scenario.optionsDisplay);
-      lines.push('');
     }
+    if (opts.globals) {
+      lines.push(`<span class="rule-key">globals</span>${punct(': {')}`);
+      const entries = Object.entries(opts.globals);
+      entries.forEach(([k, v], i) => {
+        const comma = i < entries.length - 1 ? punct(',') : '';
+        lines.push(`  <span class="rule-key">${esc(k)}</span>${punct(':')} <span class="rule-string">"${esc(String(v))}"</span>${comma}`);
+      });
+      lines.push(punct('}'));
+    }
+    if (opts.transforms) {
+      lines.push(`<span class="rule-key">transforms</span>${punct(': {')}`);
+      for (const name of Object.keys(opts.transforms)) {
+        const desc = transformDescriptions[name] || '(v) => ...';
+        lines.push(`  <span class="rule-key">${esc(name)}</span>${punct(':')} <span class="rule-comment">${esc(desc)}</span>`);
+      }
+      lines.push(punct('}'));
+    }
+    if (opts.globals || opts.transforms) lines.push('');
 
     const rules = scenario.rules;
     const multi = rules.length > 1;
@@ -189,22 +383,15 @@
     rules.forEach((rule, ri) => {
       if (multi) lines.push(`<span class="rule-comment">// Rule ${ri + 1}</span>`);
       lines.push(punct('{'));
-
-      // params
-      lines.push(`  <span class="rule-key">params</span>${punct(': {')} `);
-      const paramEntries = Object.entries(rule.params);
-      paramEntries.forEach(([k, v], i) => {
-        const comma = i < paramEntries.length - 1 ? punct(',') : '';
+      lines.push(`  <span class="rule-key">params</span>${punct(': {')}`);
+      const entries = Object.entries(rule.params);
+      entries.forEach(([k, v], i) => {
+        const comma = i < entries.length - 1 ? punct(',') : '';
         lines.push(`    <span class="rule-key">${esc(k)}</span>${punct(':')} <span class="rule-string">"${esc(v)}"</span>${comma}`);
       });
-      lines.push(`  ${punct('},')} `);
-
-      // template
+      lines.push(`  ${punct('},')}`);
       lines.push(`  <span class="rule-key">template</span>${punct(':')} <span class="rule-string">"${esc(rule.template)}"</span>${punct(',')}`);
-
-      // inject
       lines.push(`  <span class="rule-key">inject</span>${punct(':')} <span class="rule-string">"${esc(rule.inject)}"</span>`);
-
       lines.push(punct('}'));
       if (multi && ri < rules.length - 1) lines.push('');
     });
@@ -212,16 +399,15 @@
     return lines.join('\n');
   }
 
-  function punct(s) { return `<span class="rule-string" style="color:#94a3b8">${esc(s)}</span>`; }
-  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-  // ── Demo scenarios ───────────────────────────────────────────────
+  // ── Scenarios ───────────────────────────────────────────────────────
 
   const scenarios = [
     {
+      label: 'Simple',
       title: 'Simple URL Injection',
       description: 'Each product gets a URL based on its ID.',
       options: {},
+      globals: {},
       rules: [{
         params: { productId: 'products[*].id' },
         template: 'https://store.example.com/products/{productId}',
@@ -236,9 +422,11 @@
       },
     },
     {
+      label: 'Encoding',
       title: 'URL Encoding',
       description: 'Special characters are encoded with encodeURIComponent by default.',
       options: {},
+      globals: {},
       rules: [{
         params: { title: 'articles[*].title' },
         template: 'https://blog.example.com/search?q={title}',
@@ -253,9 +441,11 @@
       },
     },
     {
+      label: 'Raw',
       title: 'Raw Modifier',
       description: 'The |raw modifier skips encoding — useful for domains, paths, and URL fragments.',
       options: {},
+      globals: {},
       rules: [{
         params: { domain: 'sites[*].domain', path: 'sites[*].path' },
         template: 'https://{domain|raw}/{path|raw}',
@@ -269,6 +459,7 @@
       },
     },
     {
+      label: 'Slugify',
       title: 'Custom Transform',
       description: 'A slugify transform converts titles into URL-safe slugs.',
       options: {
@@ -276,7 +467,7 @@
           slugify: (v) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         },
       },
-      optionsDisplay: `<span class="rule-key">transforms</span>${punct(': {')} \n  <span class="rule-key">slugify</span>${punct(':')} <span class="rule-comment">(v) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-")</span>\n${punct('}')}`,
+      globals: {},
       rules: [{
         params: { title: 'posts[*].title' },
         template: 'https://blog.example.com/posts/{title|slugify}',
@@ -291,12 +482,11 @@
       },
     },
     {
+      label: 'Globals',
       title: 'Globals',
       description: 'Engine-level globals are available in all templates without being in params.',
-      options: {
-        globals: { APP_DOMAIN: 'api.acme.com', API_VERSION: 'v2' },
-      },
-      optionsDisplay: `<span class="rule-key">globals</span>${punct(': {')} \n  <span class="rule-key">APP_DOMAIN</span>${punct(':')} <span class="rule-string">"api.acme.com"</span>${punct(',')}\n  <span class="rule-key">API_VERSION</span>${punct(':')} <span class="rule-string">"v2"</span>\n${punct('}')}`,
+      options: { globals: { APP_DOMAIN: 'api.acme.com', API_VERSION: 'v2' } },
+      globals: { APP_DOMAIN: 'api.acme.com', API_VERSION: 'v2' },
       rules: [{
         params: { userId: 'users[*].id' },
         template: 'https://{APP_DOMAIN|raw}/{API_VERSION|raw}/users/{userId}',
@@ -310,9 +500,11 @@
       },
     },
     {
+      label: 'Multi-Level',
       title: 'Multi-Level Traversal',
       description: 'Parameters collected at 3 nesting levels — tenants, regions, and services.',
       options: {},
+      globals: {},
       rules: [{
         params: {
           tenantId: 'tenants[*].id',
@@ -341,9 +533,11 @@
       },
     },
     {
+      label: 'Multi-Rule',
       title: 'Multiple Rules',
       description: 'Two rules applied sequentially, each injecting a different property.',
       options: {},
+      globals: {},
       rules: [
         {
           params: { id: 'items[*].id' },
@@ -364,9 +558,11 @@
       },
     },
     {
+      label: 'Sibling',
       title: 'Sibling Params',
       description: 'Multiple params from the same array depth — different fields on the same object.',
       options: {},
+      globals: {},
       rules: [{
         params: {
           first: 'employees[*].firstName',
@@ -385,9 +581,71 @@
     },
   ];
 
-  // ── Render ───────────────────────────────────────────────────────
+  // ── Interactive playground ──────────────────────────────────────────
 
-  const container = document.getElementById('demos');
+  const jarOpts = { tab: '  ', spellcheck: false, catchTab: true, addClosing: true };
+
+  const dataJar = CodeJar(document.getElementById('editor-data'), highlightJson, jarOpts);
+  const rulesJar = CodeJar(document.getElementById('editor-rules'), highlightJson, jarOpts);
+  const globalsJar = CodeJar(document.getElementById('editor-globals'), highlightJson, jarOpts);
+
+  const outputPre = document.getElementById('output-pre');
+
+  let debounceTimer;
+  function debouncedUpdate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(updatePlayground, 200);
+  }
+
+  dataJar.onUpdate(debouncedUpdate);
+  rulesJar.onUpdate(debouncedUpdate);
+  globalsJar.onUpdate(debouncedUpdate);
+
+  function updatePlayground() {
+    try {
+      const data = JSON.parse(dataJar.toString());
+      const rules = JSON.parse(rulesJar.toString());
+
+      const globalsText = globalsJar.toString().trim();
+      const globals = globalsText && globalsText !== '{}' ? JSON.parse(globalsText) : {};
+
+      const engine = createEngine({ globals, transforms: builtInTransforms });
+      engine.apply(rules, data);
+
+      const highlightKeys = new Set(rules.map(r => r.inject));
+      outputPre.innerHTML = jsonToHtml(data, 0, highlightKeys);
+    } catch (e) {
+      outputPre.innerHTML = `<span class="error-text">${esc(e.message)}</span>`;
+    }
+  }
+
+  // Preset buttons
+  const presetsEl = document.getElementById('presets');
+  let activeBtn = null;
+
+  function loadPreset(scenario, btn) {
+    if (activeBtn) activeBtn.classList.remove('active');
+    btn.classList.add('active');
+    activeBtn = btn;
+
+    dataJar.updateCode(JSON.stringify(scenario.data, null, 2));
+    rulesJar.updateCode(JSON.stringify(scenario.rules, null, 2));
+    globalsJar.updateCode(JSON.stringify(scenario.globals || {}, null, 2));
+    updatePlayground();
+  }
+
+  scenarios.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.textContent = s.label;
+    btn.addEventListener('click', () => loadPreset(s, btn));
+    presetsEl.appendChild(btn);
+    if (i === 0) loadPreset(s, btn); // default to first preset
+  });
+
+  // ── Static example cards ────────────────────────────────────────────
+
+  const demosEl = document.getElementById('demos');
 
   for (const scenario of scenarios) {
     const engine = createEngine(scenario.options);
@@ -406,12 +664,14 @@
       </div>
       <div class="panels">
         <div class="panel">
-          <div class="panel-label">Input Data</div>
-          <pre>${jsonToHtml(input, 0, null)}</pre>
-        </div>
-        <div class="panel">
-          <div class="panel-label">Rule${scenario.rules.length > 1 ? 's' : ''}</div>
-          <pre>${ruleToHtml(scenario)}</pre>
+          <div class="panel-section">
+            <div class="panel-label">Input Data</div>
+            <pre>${jsonToHtml(input, 0, null)}</pre>
+          </div>
+          <div class="panel-section">
+            <div class="panel-label">Rule${scenario.rules.length > 1 ? 's' : ''}</div>
+            <pre>${ruleToHtml(scenario)}</pre>
+          </div>
         </div>
         <div class="panel">
           <div class="panel-label">Output</div>
@@ -419,7 +679,7 @@
         </div>
       </div>
     `;
-    container.appendChild(card);
+    demosEl.appendChild(card);
   }
 </script>
 </body>

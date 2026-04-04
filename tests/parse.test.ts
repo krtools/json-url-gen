@@ -3,15 +3,15 @@ import { parsePath } from '../src/parse';
 
 describe('parsePath', () => {
   it('parses multi-level path with wildcards', () => {
-    expect(parsePath('tenants[*].regions[*].id')).toEqual({
-      segments: ['tenants', '[*]', 'regions', '[*]', 'id'],
+    expect(parsePath('tenants[].regions[].id')).toEqual({
+      segments: ['tenants', '[]', 'regions', '[]', 'id'],
       depth: 2,
     });
   });
 
   it('parses single-level path with wildcard', () => {
-    expect(parsePath('items[*].name')).toEqual({
-      segments: ['items', '[*]', 'name'],
+    expect(parsePath('items[].name')).toEqual({
+      segments: ['items', '[]', 'name'],
       depth: 1,
     });
   });
@@ -54,8 +54,8 @@ describe('parsePath', () => {
     });
 
     it('combines escaping with wildcards', () => {
-      expect(parsePath('items[*].foo\\.bar')).toEqual({
-        segments: ['items', '[*]', 'foo.bar'],
+      expect(parsePath('items[].foo\\.bar')).toEqual({
+        segments: ['items', '[]', 'foo.bar'],
         depth: 1,
       });
     });
@@ -85,8 +85,8 @@ describe('parsePath', () => {
     });
 
     it('parses quoted segment combined with wildcards', () => {
-      expect(parsePath('data[*].["weird.key"].name')).toEqual({
-        segments: ['data', '[*]', 'weird.key', 'name'],
+      expect(parsePath('data[].["weird.key"].name')).toEqual({
+        segments: ['data', '[]', 'weird.key', 'name'],
         depth: 1,
       });
     });
@@ -122,8 +122,8 @@ describe('parsePath', () => {
     });
 
     it('multiple quoted segments in a path', () => {
-      expect(parsePath('["a.b"][*].["c.d"]')).toEqual({
-        segments: ['a.b', '[*]', 'c.d'],
+      expect(parsePath('["a.b"][].["c.d"]')).toEqual({
+        segments: ['a.b', '[]', 'c.d'],
         depth: 1,
       });
     });

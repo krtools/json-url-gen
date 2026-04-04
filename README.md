@@ -32,9 +32,9 @@ const data = {
 engine.apply(
   [{
     params: {
-      tenantId:  'tenants[*].id',
-      region:    'tenants[*].regions[*].code',
-      serviceId: 'tenants[*].regions[*].services[*].id',
+      tenantId:  'tenants[].id',
+      region:    'tenants[].regions[].code',
+      serviceId: 'tenants[].regions[].services[].id',
     },
     template: 'https://console.example.com/{tenantId}/{region}/{serviceId}',
     inject: 'url',
@@ -132,8 +132,8 @@ Also called automatically by `compile()` and `apply()`.
 Parses a dot-notation path string into segments and a wildcard depth.
 
 ```ts
-parsePath('tenants[*].regions[*].id')
-// → { segments: ['tenants', '[*]', 'regions', '[*]', 'id'], depth: 2 }
+parsePath('tenants[].regions[].id')
+// → { segments: ['tenants', '[]', 'regions', '[]', 'id'], depth: 2 }
 ```
 
 ### `renderTemplate(template, values, transforms): string | null`
@@ -142,10 +142,10 @@ Renders a template string against a values map. Returns `null` if any referenced
 
 ## Path Syntax
 
-Paths use dot-notation with `[*]` to denote array iteration:
+Paths use dot-notation with `[]` to denote array iteration:
 
 ```
-tenants[*].regions[*].services[*].id
+tenants[].regions[].services[].id
 ```
 
 All param paths in a rule must form a strict parent-child lineage — no "cousin" paths (paths that diverge at the same array depth).
@@ -160,7 +160,7 @@ Property names containing dots, brackets, or backslashes can be referenced using
 foo\.bar              → key "foo.bar"
 data\[0]              → key "data[0]"
 back\\slash           → key "back\slash"
-items[*].foo\.bar     → iterate items, read key "foo.bar"
+items[].foo\.bar      → iterate items, read key "foo.bar"
 ```
 
 **Quoted segments** — wrap the key in `["..."]` for keys with any special characters:
@@ -168,7 +168,7 @@ items[*].foo\.bar     → iterate items, read key "foo.bar"
 ```
 ["ANNOYING[*]_PATH"]                → key "ANNOYING[*]_PATH"
 ["foo.bar"]                         → key "foo.bar"
-data[*].["weird.key"].name          → iterate data, read key "weird.key", then "name"
+data[].["weird.key"].name           → iterate data, read key "weird.key", then "name"
 ["has\"quotes"]                     → key with literal double quote
 ```
 
@@ -207,9 +207,9 @@ const engine = createEngine({
 // Compile once — all parsing, validation, and transform binding happens here
 const compiled = engine.compile([{
   params: {
-    tenantId:  'tenants[*].id',
-    serviceId: 'tenants[*].services[*].id',
-    name:      'tenants[*].services[*].name',
+    tenantId:  'tenants[].id',
+    serviceId: 'tenants[].services[].id',
+    name:      'tenants[].services[].name',
   },
   template: 'https://{DOMAIN|raw}/{tenantId}/{serviceId}/{name|slug}',
   inject: 'url',
@@ -230,7 +230,7 @@ const engine = createEngine({
 
 engine.apply(
   [{
-    params: { id: 'items[*].id' },
+    params: { id: 'items[].id' },
     template: 'https://{DOMAIN|raw}/items/{id}',
     inject: 'url',
   }],
@@ -251,7 +251,7 @@ const engine = createEngine({
 
 engine.apply(
   [{
-    params: { name: 'items[*].name' },
+    params: { name: 'items[].name' },
     template: 'https://example.com/{name|slugify}',
     inject: 'slug',
   }],
@@ -274,7 +274,7 @@ const engine = createEngine({
 
 engine.apply(
   [{
-    params: { tag: 'items[*].tag' },
+    params: { tag: 'items[].tag' },
     template: 'https://example.com/tags/{tag|trim|upper|raw}',
     inject: 'url',
   }],
@@ -293,7 +293,7 @@ const engine = createEngine({ globals: { BASE: 'https://api.example.com' } });
 
 const compiled = engine.compile(
   [{
-    params: { id: 'items[*].id' },
+    params: { id: 'items[].id' },
     template: '{BASE|raw}/{ENV|raw}/items/{id}',
     inject: 'url',
   }],
@@ -319,12 +319,12 @@ Rules are applied sequentially. Each rule can inject a different property:
 engine.apply(
   [
     {
-      params: { id: 'items[*].id' },
+      params: { id: 'items[].id' },
       template: 'https://example.com/items/{id}',
       inject: 'url',
     },
     {
-      params: { id: 'items[*].id' },
+      params: { id: 'items[].id' },
       template: 'https://other.com/ref/{id}',
       inject: 'altUrl',
     },

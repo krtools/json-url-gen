@@ -109,7 +109,7 @@ function traverse(
 
   const seg = inst.traversalSegments[segIdx];
 
-  if (seg === '[*]') {
+  if (seg === '[]') {
     if (!Array.isArray(current)) return;
 
     const nextDepth = currentDepth + 1;

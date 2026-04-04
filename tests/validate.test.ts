@@ -5,7 +5,7 @@ describe('validate', () => {
   it('V1 — throws on cousin paths at depth 1', () => {
     expect(() =>
       validate([{
-        params: { a: 'users[*].id', b: 'orders[*].name' },
+        params: { a: 'users[].id', b: 'orders[].name' },
         template: '{a}/{b}',
         inject: 'url',
       }])
@@ -15,7 +15,7 @@ describe('validate', () => {
   it('V1 — throws on sibling arrays under same parent', () => {
     expect(() =>
       validate([{
-        params: { a: 'org[*].users[*].id', b: 'org[*].teams[*].name' },
+        params: { a: 'org[].users[].id', b: 'org[].teams[].name' },
         template: '{a}/{b}',
         inject: 'url',
       }])
@@ -26,9 +26,9 @@ describe('validate', () => {
     expect(() =>
       validate([{
         params: {
-          tenantId: 'tenants[*].id',
-          region: 'tenants[*].regions[*].code',
-          serviceId: 'tenants[*].regions[*].services[*].id',
+          tenantId: 'tenants[].id',
+          region: 'tenants[].regions[].code',
+          serviceId: 'tenants[].regions[].services[].id',
         },
         template: '{tenantId}/{region}/{serviceId}',
         inject: 'url',
@@ -40,7 +40,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { id: 'items[*].id' },
+          params: { id: 'items[].id' },
           template: '{id}/{missing}',
           inject: 'url',
         }],
@@ -53,7 +53,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { id: 'items[*].id' },
+          params: { id: 'items[].id' },
           template: '{id}/{APP_DOMAIN|raw}',
           inject: 'url',
         }],
@@ -66,7 +66,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { name: 'items[*].name' },
+          params: { name: 'items[].name' },
           template: '{name|nope}',
           inject: 'url',
         }],
@@ -78,7 +78,7 @@ describe('validate', () => {
   it('V3 — raw is always valid (built-in)', () => {
     expect(() =>
       validate([{
-        params: { name: 'items[*].name' },
+        params: { name: 'items[].name' },
         template: '{name|raw}',
         inject: 'url',
       }])
@@ -98,7 +98,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { id: 'items[*].id' },
+          params: { id: 'items[].id' },
           template: '{id}/{HOST|raw}',
           inject: 'url',
         }],
@@ -112,7 +112,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { id: 'items[*].id' },
+          params: { id: 'items[].id' },
           template: '{id}/{HOST|raw}/{UNKNOWN}',
           inject: 'url',
         }],
@@ -127,7 +127,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { name: 'items[*].name' },
+          params: { name: 'items[].name' },
           template: '{name|trim|nope}',
           inject: 'url',
         }],
@@ -141,7 +141,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { name: 'items[*].name' },
+          params: { name: 'items[].name' },
           template: '{name|upper|encode}',
           inject: 'url',
         }],
@@ -158,7 +158,7 @@ describe('validate', () => {
     expect(() =>
       validate(
         [{
-          params: { name: 'items[*].name' },
+          params: { name: 'items[].name' },
           template: '{name|trim|upper|raw}',
           inject: 'url',
         }],

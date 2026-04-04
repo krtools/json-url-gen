@@ -9,7 +9,7 @@ describe('engine.apply (convenience)', () => {
   it('basic single-depth injection', () => {
     const data = { items: [{ id: '1', name: 'foo' }, { id: '2', name: 'bar' }] };
     apply(
-      [{ params: { itemId: 'items[*].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
+      [{ params: { itemId: 'items[].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
       data
     );
     expect(data.items[0].url).toBe('https://example.com/items/1');
@@ -29,9 +29,9 @@ describe('engine.apply (convenience)', () => {
     apply(
       [{
         params: {
-          tenantId: 'tenants[*].id',
-          region: 'tenants[*].regions[*].code',
-          serviceId: 'tenants[*].regions[*].services[*].id',
+          tenantId: 'tenants[].id',
+          region: 'tenants[].regions[].code',
+          serviceId: 'tenants[].regions[].services[].id',
         },
         template: 'https://example.com/{tenantId}/{region}/{serviceId}',
         inject: 'href',
@@ -46,7 +46,7 @@ describe('engine.apply (convenience)', () => {
     const eng = createEngine({ globals: { DOMAIN: 'api.acme.com' } });
     const data = { items: [{ id: '42' }] };
     eng.apply(
-      [{ params: { itemId: 'items[*].id' }, template: 'https://{DOMAIN|raw}/items/{itemId}', inject: 'url' }],
+      [{ params: { itemId: 'items[].id' }, template: 'https://{DOMAIN|raw}/items/{itemId}', inject: 'url' }],
       data
     );
     expect((data as any).items[0].url).toBe('https://api.acme.com/items/42');
@@ -55,7 +55,7 @@ describe('engine.apply (convenience)', () => {
   it('missing param value → no injection', () => {
     const data: any = { items: [{ id: '1' }, { name: 'no-id' }] };
     apply(
-      [{ params: { itemId: 'items[*].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
+      [{ params: { itemId: 'items[].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
       data
     );
     expect(data.items[0].url).toBe('https://example.com/items/1');
@@ -65,7 +65,7 @@ describe('engine.apply (convenience)', () => {
   it('default encoding applied', () => {
     const data: any = { items: [{ id: 'hello world' }] };
     apply(
-      [{ params: { itemId: 'items[*].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
+      [{ params: { itemId: 'items[].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
       data
     );
     expect(data.items[0].url).toBe('https://example.com/items/hello%20world');
@@ -74,7 +74,7 @@ describe('engine.apply (convenience)', () => {
   it('raw modifier skips encoding', () => {
     const data: any = { items: [{ path: 'foo/bar/baz' }] };
     apply(
-      [{ params: { p: 'items[*].path' }, template: 'https://example.com/{p|raw}', inject: 'url' }],
+      [{ params: { p: 'items[].path' }, template: 'https://example.com/{p|raw}', inject: 'url' }],
       data
     );
     expect(data.items[0].url).toBe('https://example.com/foo/bar/baz');
@@ -84,7 +84,7 @@ describe('engine.apply (convenience)', () => {
     const eng = createEngine({ transforms: { upper: (v) => v.toUpperCase() } });
     const data: any = { items: [{ code: 'abc' }] };
     eng.apply(
-      [{ params: { code: 'items[*].code' }, template: 'https://example.com/{code|upper}', inject: 'url' }],
+      [{ params: { code: 'items[].code' }, template: 'https://example.com/{code|upper}', inject: 'url' }],
       data
     );
     expect(data.items[0].url).toBe('https://example.com/ABC');
@@ -93,7 +93,7 @@ describe('engine.apply (convenience)', () => {
   it('inject overwrites existing property', () => {
     const data: any = { items: [{ id: '1', url: 'OLD' }] };
     apply(
-      [{ params: { itemId: 'items[*].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
+      [{ params: { itemId: 'items[].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' }],
       data
     );
     expect(data.items[0].url).toBe('https://example.com/items/1');
@@ -103,8 +103,8 @@ describe('engine.apply (convenience)', () => {
     const data: any = { items: [{ id: '1' }] };
     apply(
       [
-        { params: { itemId: 'items[*].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' },
-        { params: { itemId: 'items[*].id' }, template: 'https://other.com/ref/{itemId}', inject: 'altUrl' },
+        { params: { itemId: 'items[].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' },
+        { params: { itemId: 'items[].id' }, template: 'https://other.com/ref/{itemId}', inject: 'altUrl' },
       ],
       data
     );
@@ -133,9 +133,9 @@ describe('engine.apply (convenience)', () => {
     apply(
       [{
         params: {
-          tenantId: 'tenants[*].id',
-          region: 'tenants[*].regions[*].code',
-          serviceId: 'tenants[*].regions[*].services[*].id',
+          tenantId: 'tenants[].id',
+          region: 'tenants[].regions[].code',
+          serviceId: 'tenants[].regions[].services[].id',
         },
         template: 'https://example.com/{tenantId}/{region}/{serviceId}',
         inject: 'href',
@@ -152,7 +152,7 @@ describe('engine.apply (convenience)', () => {
     const data: any = { items: [{ id: '1', type: 'widget' }] };
     apply(
       [{
-        params: { itemId: 'items[*].id', itemType: 'items[*].type' },
+        params: { itemId: 'items[].id', itemType: 'items[].type' },
         template: 'https://example.com/{itemType}/{itemId}',
         inject: 'url',
       }],
@@ -165,7 +165,7 @@ describe('engine.apply (convenience)', () => {
 describe('engine.compile + apply', () => {
   it('compiled rules can be applied to multiple data objects', () => {
     const rules = [
-      { params: { itemId: 'items[*].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' },
+      { params: { itemId: 'items[].id' }, template: 'https://example.com/items/{itemId}', inject: 'url' },
     ];
     const compiled = engine.compile(rules);
 
@@ -183,7 +183,7 @@ describe('engine.compile + apply', () => {
     // Invalid rule — should throw at compile time
     expect(() =>
       engine.compile([{
-        params: { a: 'users[*].id', b: 'orders[*].name' },
+        params: { a: 'users[].id', b: 'orders[].name' },
         template: '{a}/{b}',
         inject: 'url',
       }])
@@ -194,9 +194,9 @@ describe('engine.compile + apply', () => {
     const eng = createEngine({ globals: { DOMAIN: 'api.test.com' } });
     const compiled = eng.compile([{
       params: {
-        tenantId: 'tenants[*].id',
-        region: 'tenants[*].regions[*].code',
-        serviceId: 'tenants[*].regions[*].services[*].id',
+        tenantId: 'tenants[].id',
+        region: 'tenants[].regions[].code',
+        serviceId: 'tenants[].regions[].services[].id',
       },
       template: 'https://{DOMAIN|raw}/{tenantId}/{region}/{serviceId}',
       inject: 'href',
@@ -217,7 +217,7 @@ describe('engine.compile + apply', () => {
       transforms: { slug: (v) => v.toLowerCase().replace(/\s+/g, '-') },
     });
     const compiled = eng.compile([{
-      params: { name: 'items[*].name' },
+      params: { name: 'items[].name' },
       template: 'https://example.com/{name|slug}',
       inject: 'url',
     }]);
@@ -230,8 +230,8 @@ describe('engine.compile + apply', () => {
 
   it('compiled sequential rules', () => {
     const compiled = engine.compile([
-      { params: { id: 'items[*].id' }, template: 'https://a.com/{id}', inject: 'urlA' },
-      { params: { id: 'items[*].id' }, template: 'https://b.com/{id}', inject: 'urlB' },
+      { params: { id: 'items[].id' }, template: 'https://a.com/{id}', inject: 'urlA' },
+      { params: { id: 'items[].id' }, template: 'https://b.com/{id}', inject: 'urlB' },
     ]);
 
     const data: any = { items: [{ id: '1' }] };
@@ -244,7 +244,7 @@ describe('engine.compile + apply', () => {
 describe('runtime globals', () => {
   it('run-time globals are available in the template', () => {
     const compiled = engine.compile(
-      [{ params: { id: 'items[*].id' }, template: 'https://{HOST|raw}/items/{id}', inject: 'url' }],
+      [{ params: { id: 'items[].id' }, template: 'https://{HOST|raw}/items/{id}', inject: 'url' }],
       { runtimeGlobals: ['HOST'] },
     );
 
@@ -256,7 +256,7 @@ describe('runtime globals', () => {
   it('run-time globals override compile-time globals', () => {
     const eng = createEngine({ globals: { ENV: 'staging' } });
     const compiled = eng.compile(
-      [{ params: { id: 'items[*].id' }, template: 'https://{ENV|raw}.example.com/{id}', inject: 'url' }],
+      [{ params: { id: 'items[].id' }, template: 'https://{ENV|raw}.example.com/{id}', inject: 'url' }],
     );
 
     const data: any = { items: [{ id: '1' }] };
@@ -266,7 +266,7 @@ describe('runtime globals', () => {
 
   it('params still take precedence over run-time globals', () => {
     const compiled = engine.compile(
-      [{ params: { id: 'items[*].id' }, template: 'https://example.com/{id}', inject: 'url' }],
+      [{ params: { id: 'items[].id' }, template: 'https://example.com/{id}', inject: 'url' }],
     );
 
     const data: any = { items: [{ id: 'from-data' }] };
@@ -276,7 +276,7 @@ describe('runtime globals', () => {
 
   it('missing run-time global skips injection (no crash)', () => {
     const compiled = engine.compile(
-      [{ params: { id: 'items[*].id' }, template: 'https://{HOST|raw}/{id}', inject: 'url' }],
+      [{ params: { id: 'items[].id' }, template: 'https://{HOST|raw}/{id}', inject: 'url' }],
       { runtimeGlobals: ['HOST'] },
     );
 
@@ -287,7 +287,7 @@ describe('runtime globals', () => {
 
   it('different run-time globals per apply call', () => {
     const compiled = engine.compile(
-      [{ params: { id: 'items[*].id' }, template: 'https://{ENV|raw}.example.com/{id}', inject: 'url' }],
+      [{ params: { id: 'items[].id' }, template: 'https://{ENV|raw}.example.com/{id}', inject: 'url' }],
       { runtimeGlobals: ['ENV'] },
     );
 
@@ -303,7 +303,7 @@ describe('runtime globals', () => {
   it('undeclared runtime global still fails V2 at compile time', () => {
     expect(() =>
       engine.compile([{
-        params: { id: 'items[*].id' },
+        params: { id: 'items[].id' },
         template: 'https://{UNDECLARED|raw}/{id}',
         inject: 'url',
       }])
@@ -314,7 +314,7 @@ describe('runtime globals', () => {
     const eng = createEngine({ globals: { BASE: 'https://example.com' } });
     const data: any = { items: [{ id: '1' }] };
     eng.apply(
-      [{ params: { id: 'items[*].id' }, template: '{BASE|raw}/{TENANT|raw}/{id}', inject: 'url' }],
+      [{ params: { id: 'items[].id' }, template: '{BASE|raw}/{TENANT|raw}/{id}', inject: 'url' }],
       data,
       { globals: { TENANT: 'acme' } },
     );

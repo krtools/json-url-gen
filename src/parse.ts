@@ -18,10 +18,10 @@ export function parsePath(path: string): ParsedPath {
     }
 
     if (path[i] === '[') {
-      if (path[i + 1] === '*' && path[i + 2] === ']') {
-        // Wildcard: [*]
-        segments.push('[*]');
-        i += 3;
+      if (path[i + 1] === ']') {
+        // Array iteration: []
+        segments.push('[]');
+        i += 2;
       } else if (path[i + 1] === '"') {
         // Quoted segment: ["..."]
         i += 2; // skip ["
@@ -88,14 +88,14 @@ export function parsePath(path: string): ParsedPath {
     throw new Error(`Invalid path: "${path}"`);
   }
 
-  const depth = segments.filter(s => s === '[*]').length;
+  const depth = segments.filter(s => s === '[]').length;
   return { segments, depth };
 }
 
 /**
  * Extract scope prefixes from a parsed path.
- * For "tenants[*].regions[*].services[*].id" this returns:
- *   ["tenants.[*]", "tenants.[*].regions.[*]", "tenants.[*].regions.[*].services.[*]"]
+ * For "tenants[].regions[].services[].id" this returns:
+ *   ["tenants.[]", "tenants.[].regions.[]", "tenants.[].regions.[].services.[]"]
  */
 export function getScopePrefixes(segments: string[]): string[] {
   const prefixes: string[] = [];
@@ -103,7 +103,7 @@ export function getScopePrefixes(segments: string[]): string[] {
 
   for (const seg of segments) {
     current += (current ? '.' : '') + seg;
-    if (seg === '[*]') {
+    if (seg === '[]') {
       prefixes.push(current);
     }
   }

@@ -409,7 +409,7 @@
       options: {},
       globals: {},
       rules: [{
-        params: { productId: 'products[*].id' },
+        params: { productId: 'products[].id' },
         template: 'https://store.example.com/products/{productId}',
         inject: 'url',
       }],
@@ -428,7 +428,7 @@
       options: {},
       globals: {},
       rules: [{
-        params: { title: 'articles[*].title' },
+        params: { title: 'articles[].title' },
         template: 'https://blog.example.com/search?q={title}',
         inject: 'searchUrl',
       }],
@@ -447,7 +447,7 @@
       options: {},
       globals: {},
       rules: [{
-        params: { domain: 'sites[*].domain', path: 'sites[*].path' },
+        params: { domain: 'sites[].domain', path: 'sites[].path' },
         template: 'https://{domain|raw}/{path|raw}',
         inject: 'fullUrl',
       }],
@@ -469,7 +469,7 @@
       },
       globals: {},
       rules: [{
-        params: { title: 'posts[*].title' },
+        params: { title: 'posts[].title' },
         template: 'https://blog.example.com/posts/{title|slugify}',
         inject: 'permalink',
       }],
@@ -488,7 +488,7 @@
       options: { globals: { APP_DOMAIN: 'api.acme.com', API_VERSION: 'v2' } },
       globals: { APP_DOMAIN: 'api.acme.com', API_VERSION: 'v2' },
       rules: [{
-        params: { userId: 'users[*].id' },
+        params: { userId: 'users[].id' },
         template: 'https://{APP_DOMAIN|raw}/{API_VERSION|raw}/users/{userId}',
         inject: 'apiUrl',
       }],
@@ -507,9 +507,9 @@
       globals: {},
       rules: [{
         params: {
-          tenantId: 'tenants[*].id',
-          region: 'tenants[*].regions[*].code',
-          serviceId: 'tenants[*].regions[*].services[*].id',
+          tenantId: 'tenants[].id',
+          region: 'tenants[].regions[].code',
+          serviceId: 'tenants[].regions[].services[].id',
         },
         template: 'https://console.example.com/{tenantId}/{region}/{serviceId}',
         inject: 'dashboardUrl',
@@ -540,12 +540,12 @@
       globals: {},
       rules: [
         {
-          params: { id: 'items[*].id' },
+          params: { id: 'items[].id' },
           template: 'https://store.example.com/items/{id}',
           inject: 'storeUrl',
         },
         {
-          params: { sku: 'items[*].sku' },
+          params: { sku: 'items[].sku' },
           template: 'https://warehouse.example.com/lookup/{sku}',
           inject: 'warehouseUrl',
         },
@@ -565,9 +565,9 @@
       globals: {},
       rules: [{
         params: {
-          first: 'employees[*].firstName',
-          last: 'employees[*].lastName',
-          dept: 'employees[*].dept',
+          first: 'employees[].firstName',
+          last: 'employees[].lastName',
+          dept: 'employees[].dept',
         },
         template: 'https://directory.example.com/{dept}/{last}/{first}',
         inject: 'profileUrl',

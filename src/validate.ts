@@ -12,6 +12,16 @@ export function validate(rules: UrlRule[], options?: EngineOptions, runtimeGloba
       throw new Error(`Rule ${ruleIdx}: params must not be empty — no target node to inject into`);
     }
 
+    // V5 — Bare [] path (no field name before the wildcard)
+    for (const [name, path] of Object.entries(rule.params)) {
+      const parsed = parsePath(path);
+      if (parsed.segments.length === 1 && parsed.segments[0] === '[]') {
+        throw new Error(
+          `Rule ${ruleIdx}: param "${name}" is a bare "[]" — a primitive array path must include the array field name (e.g. "tags[]")`
+        );
+      }
+    }
+
     // V1 — Cousin-node conflict
     const paramPrefixes: { name: string; prefixes: string[] }[] = [];
     for (const [name, path] of Object.entries(rule.params)) {

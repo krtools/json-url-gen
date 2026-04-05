@@ -166,4 +166,24 @@ describe('validate', () => {
       )
     ).not.toThrow();
   });
+
+  it('V5 — throws on bare [] path', () => {
+    expect(() =>
+      validate([{
+        params: { t: '[]' },
+        template: '{t}',
+        inject: 'url',
+      }])
+    ).toThrow(/bare "\[\]"/);
+  });
+
+  it('V5 — allows primitive array path with field name', () => {
+    expect(() =>
+      validate([{
+        params: { t: 'tags[]' },
+        template: '{t}',
+        inject: 'urls',
+      }])
+    ).not.toThrow();
+  });
 });

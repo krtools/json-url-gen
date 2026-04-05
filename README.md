@@ -124,6 +124,7 @@ Standalone static analysis of rules. Throws a descriptive error on:
 | V2 | Undefined template variable — not in `params`, `globals`, or `transforms` |
 | V3 | Undefined transform modifier — not `raw`, `encode`, or in `transforms` |
 | V4 | Empty `params` — no target node to inject into |
+| V5 | Bare `[]` param path — must include array field name (e.g. `tags[]`) |
 
 Also called automatically by `compile()` and `apply()`.
 
@@ -149,6 +150,23 @@ tenants[].regions[].services[].id
 ```
 
 All param paths in a rule must form a strict parent-child lineage — no "cousin" paths (paths that diverge at the same array depth).
+
+### Primitive Arrays
+
+When a param path ends with `[]` (no trailing field name), the array elements themselves are the values. The engine iterates the array, renders a URL per element, and injects the result as a **sibling array** on the parent object:
+
+```
+tags[]                    → each element of "tags" is the value
+orgs[].tags[]             → per-org: each element of "tags" is the value
+```
+
+This works with mixed params — ancestor fields are collected normally:
+
+```ts
+{ params: { orgId: 'orgs[].id', tag: 'orgs[].tags[]' }, ... }
+```
+
+Primitive elements (strings, numbers, booleans) are used as values. Null/undefined/object elements are skipped.
 
 ### Escaping Special Characters
 
@@ -311,6 +329,53 @@ compiled.apply(prod, { globals: { ENV: 'production' } });
 // items[0].url → "https://api.example.com/production/items/1"
 ```
 
+### Primitive Arrays
+
+Generate an array of URLs from an array of primitive values:
+
+```ts
+const data = {
+  org: 'acme',
+  tags: ['api', 'auth', 'billing'],
+};
+
+engine.apply(
+  [{
+    params: { org: 'org', tag: 'tags[]' },
+    template: 'https://example.com/{org}/tags/{tag}',
+    inject: 'tagUrls',
+  }],
+  data
+);
+// data.tagUrls → [
+//   "https://example.com/acme/tags/api",
+//   "https://example.com/acme/tags/auth",
+//   "https://example.com/acme/tags/billing",
+// ]
+```
+
+Works at any nesting depth — per-parent arrays are injected as siblings:
+
+```ts
+const data = {
+  orgs: [
+    { id: 'acme', tags: ['api', 'auth'] },
+    { id: 'globex', tags: ['billing'] },
+  ],
+};
+
+engine.apply(
+  [{
+    params: { orgId: 'orgs[].id', tag: 'orgs[].tags[]' },
+    template: 'https://example.com/{orgId}/{tag}',
+    inject: 'tagUrls',
+  }],
+  data
+);
+// orgs[0].tagUrls → ["https://example.com/acme/api", "https://example.com/acme/auth"]
+// orgs[1].tagUrls → ["https://example.com/globex/billing"]
+```
+
 ### Multiple Rules
 
 Rules are applied sequentially. Each rule can inject a different property:
@@ -345,6 +410,11 @@ engine.apply(
 | Global name collides with param name | Param wins, `console.warn` logged |
 | Run-time global overrides compile-time global | Run-time wins |
 | Declared runtime global missing at apply time | Skip injection for that node |
+| Primitive array path (`tags[]`) | Injects sibling array of URLs on parent |
+| Primitive array — empty source | Injects `[]` |
+| Primitive array — missing source field | No injection |
+| Primitive array — null/object elements | Skipped |
+| Bare `[]` param path | Caught by `validate`, throws |
 | Rules applied | Sequentially, each sees previous mutations |
 
 ## License

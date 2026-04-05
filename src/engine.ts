@@ -17,6 +17,7 @@ interface RuleInstruction {
   maxDepth: number;
   templateParts: CompiledTemplatePart[];
   inject: string;
+  primitiveArray?: { fieldName: string };
 }
 
 // ── Compile ────────────────────────────────────────────────────────
@@ -57,12 +58,22 @@ function compileRules(
 
     // Traversal path = deepest param's segments minus its trailing field name
     const deepest = parsed.find(p => p.depth === maxDepth)!;
-    const traversalSegments = deepest.segments.slice(0, -1);
+    const isPrimitiveArray = deepest.fieldName === '[]';
+    let traversalSegments: string[];
+    let primitiveArray: { fieldName: string } | undefined;
+
+    if (isPrimitiveArray) {
+      // Primitive array: stop at parent object, slice off both arrayField and []
+      traversalSegments = deepest.segments.slice(0, -2);
+      primitiveArray = { fieldName: deepest.segments[deepest.segments.length - 2] };
+    } else {
+      traversalSegments = deepest.segments.slice(0, -1);
+    }
 
     // Pre-compile template — all modifier/transform resolution happens here
     const templateParts = compileTemplate(rule.template, transforms);
 
-    return { paramsByDepth, traversalSegments, maxDepth, templateParts, inject: rule.inject };
+    return { paramsByDepth, traversalSegments, maxDepth, templateParts, inject: rule.inject, primitiveArray };
   });
 }
 
@@ -84,10 +95,48 @@ function traverse(
   globals: Record<string, string>,
 ): void {
   if (segIdx >= inst.traversalSegments.length) {
-    // Target node reached — collect target-depth params, render, inject
     const node = current as Record<string, unknown>;
     if (!node || typeof node !== 'object') return;
 
+    if (inst.primitiveArray) {
+      // Primitive array: iterate elements as param values, inject sibling array
+      const localScope = { ...scope };
+
+      // Collect any ancestor params not yet in scope
+      // (handles depth-0 params when traversalSegments is empty)
+      for (const [depth, params] of inst.paramsByDepth) {
+        if (depth < inst.maxDepth) {
+          for (const p of params) {
+            if (!(p.name in localScope)) {
+              const val = node[p.fieldName];
+              if (val !== undefined && val !== null) {
+                localScope[p.name] = String(val);
+              }
+            }
+          }
+        }
+      }
+
+      const arr = node[inst.primitiveArray.fieldName];
+      if (!Array.isArray(arr)) return;
+
+      const targetParam = inst.paramsByDepth.get(inst.maxDepth)?.[0];
+      if (!targetParam) return;
+
+      const results: string[] = [];
+      for (const elem of arr) {
+        if (elem === undefined || elem === null) continue;
+        if (typeof elem === 'object') continue;
+        const elemScope = { ...localScope, [targetParam.name]: String(elem) };
+        const values: Record<string, unknown> = { ...globals, ...elemScope };
+        const result = renderCompiled(inst.templateParts, values);
+        if (result !== null) results.push(result);
+      }
+      node[inst.inject] = results;
+      return;
+    }
+
+    // Target node reached — collect target-depth params, render, inject
     const targetParams = inst.paramsByDepth.get(inst.maxDepth);
     const localScope = { ...scope };
     if (targetParams) {

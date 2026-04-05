@@ -321,3 +321,161 @@ describe('runtime globals', () => {
     expect(data.items[0].url).toBe('https://example.com/acme/1');
   });
 });
+
+describe('primitive array params', () => {
+  it('simple primitive array → injects sibling array of URLs', () => {
+    const data: any = { tags: ['foo', 'bar', 'baz'] };
+    apply(
+      [{ params: { t: 'tags[]' }, template: 'https://example.com/tags/{t}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual([
+      'https://example.com/tags/foo',
+      'https://example.com/tags/bar',
+      'https://example.com/tags/baz',
+    ]);
+  });
+
+  it('nested: per-parent arrays of URLs', () => {
+    const data: any = {
+      orgs: [
+        { id: 'acme', tags: ['a', 'b'] },
+        { id: 'globex', tags: ['c'] },
+      ],
+    };
+    apply(
+      [{
+        params: { orgId: 'orgs[].id', t: 'orgs[].tags[]' },
+        template: 'https://example.com/{orgId}/tags/{t}',
+        inject: 'tagUrls',
+      }],
+      data
+    );
+    expect(data.orgs[0].tagUrls).toEqual([
+      'https://example.com/acme/tags/a',
+      'https://example.com/acme/tags/b',
+    ]);
+    expect(data.orgs[1].tagUrls).toEqual([
+      'https://example.com/globex/tags/c',
+    ]);
+  });
+
+  it('depth-0 sibling param accessible in template', () => {
+    const data: any = { version: 'v2', tags: ['x'] };
+    apply(
+      [{
+        params: { ver: 'version', t: 'tags[]' },
+        template: 'https://example.com/{ver}/{t}',
+        inject: 'urls',
+      }],
+      data
+    );
+    expect(data.urls).toEqual(['https://example.com/v2/x']);
+  });
+
+  it('empty source array → injects empty array', () => {
+    const data: any = { tags: [] };
+    apply(
+      [{ params: { t: 'tags[]' }, template: 'https://example.com/{t}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual([]);
+  });
+
+  it('null and undefined elements are skipped', () => {
+    const data: any = { tags: ['a', null, undefined, 'b'] };
+    apply(
+      [{ params: { t: 'tags[]' }, template: 'https://example.com/{t}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual([
+      'https://example.com/a',
+      'https://example.com/b',
+    ]);
+  });
+
+  it('numeric elements are stringified', () => {
+    const data: any = { ids: [1, 2, 3] };
+    apply(
+      [{ params: { id: 'ids[]' }, template: 'https://example.com/items/{id}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual([
+      'https://example.com/items/1',
+      'https://example.com/items/2',
+      'https://example.com/items/3',
+    ]);
+  });
+
+  it('missing array field → no injection', () => {
+    const data: any = { other: 'x' };
+    apply(
+      [{ params: { t: 'tags[]' }, template: 'https://example.com/{t}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toBeUndefined();
+  });
+
+  it('compiled rules reusable across data objects', () => {
+    const compiled = engine.compile([
+      { params: { t: 'tags[]' }, template: 'https://example.com/{t}', inject: 'urls' },
+    ]);
+
+    const d1: any = { tags: ['a'] };
+    compiled.apply(d1);
+    expect(d1.urls).toEqual(['https://example.com/a']);
+
+    const d2: any = { tags: ['x', 'y'] };
+    compiled.apply(d2);
+    expect(d2.urls).toEqual(['https://example.com/x', 'https://example.com/y']);
+  });
+
+  it('custom transforms applied to primitive array elements', () => {
+    const eng = createEngine({
+      transforms: { slug: (v) => v.toLowerCase().replace(/\s+/g, '-') },
+    });
+    const data: any = { tags: ['Hello World', 'Foo Bar'] };
+    eng.apply(
+      [{ params: { t: 'tags[]' }, template: 'https://example.com/{t|slug|raw}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual([
+      'https://example.com/hello-world',
+      'https://example.com/foo-bar',
+    ]);
+  });
+
+  it('globals accessible in primitive array template', () => {
+    const eng = createEngine({ globals: { BASE: 'https://api.example.com' } });
+    const data: any = { tags: ['a'] };
+    eng.apply(
+      [{ params: { t: 'tags[]' }, template: '{BASE|raw}/tags/{t}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual(['https://api.example.com/tags/a']);
+  });
+
+  it('object elements in array are skipped', () => {
+    const data: any = { tags: ['a', { nested: true }, 'b'] };
+    apply(
+      [{ params: { t: 'tags[]' }, template: 'https://example.com/{t}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual([
+      'https://example.com/a',
+      'https://example.com/b',
+    ]);
+  });
+
+  it('encoding applied to primitive array values by default', () => {
+    const data: any = { tags: ['hello world', 'a&b'] };
+    apply(
+      [{ params: { t: 'tags[]' }, template: 'https://example.com/{t}', inject: 'urls' }],
+      data
+    );
+    expect(data.urls).toEqual([
+      'https://example.com/hello%20world',
+      'https://example.com/a%26b',
+    ]);
+  });
+});
